@@ -13,6 +13,7 @@
     "@popperjs/core": "^2.11.7",
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
     "@tsconfig/svelte": "^3.0.0",
+    "@types/node": "^18.15.12",
     "autoprefixer": "^10.4.7",
     "chart.js": "^4.2.1",
     "classnames": "^2.3.2",
