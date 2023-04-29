@@ -21,6 +21,7 @@
   import ImageUpload from './lib/components/ImageUpload.svelte';
   import demoImage from './assets/image.jpeg';
   import { ColorChannel } from './lib/engine/types';
+  import Preview from './lib/components/Preview.svelte';
 
   let originalSrc: string | null = demoImage;
   let src: string | null = demoImage;
@@ -173,7 +174,7 @@
   <div class="grow flex">
     <div class="w-64" />
     <div class="grow flex justify-center items-center">
-      <img {src} alt="" />
+      <Preview {src} />
       {#if processing}
         <div class="absolute">
           <Spinner />
