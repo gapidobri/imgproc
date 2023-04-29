@@ -41,7 +41,7 @@ export async function applyFilter(
 
 export async function applyMatrix(imageData: ImageData, filter: Filter) {
   const newImageData = await runInWorker<ApplyMarixParams, ImageData>(
-    './workers/applyMatrix.ts',
+    new URL('./workers/applyMatrix.ts', import.meta.url),
     { imageData, filter },
   );
   imageData.data.set(newImageData.data);
@@ -72,21 +72,20 @@ async function getImageData(src: string): Promise<ImageData> {
 export async function getHistogram(src: string) {
   const imageData = await getImageData(src);
   const histogram = await runInWorker<ImageData, HistogramData>(
-    './workers/getHistogram.ts',
+    new URL('./workers/getHistogram.ts', import.meta.url),
     imageData,
   );
   return histogram;
 }
 
-async function runInWorker<I, O>(url: string, data: I) {
+async function runInWorker<I, O>(url: URL, data: I) {
   return new Promise<O>((res, rej) => {
     if (!window.Worker) {
       rej('Worker is not supported in this browser');
       return;
     }
 
-    const workerUrl = new URL(url, import.meta.url);
-    const worker = new Worker(workerUrl, { type: 'module' });
+    const worker = new Worker(url, { type: 'module' });
 
     worker.onmessage = (e: MessageEvent<O>) => res(e.data);
     worker.postMessage(data);
@@ -95,24 +94,27 @@ async function runInWorker<I, O>(url: string, data: I) {
 
 export async function grayscale(imageData: ImageData) {
   const newImageData = await runInWorker<ImageData, ImageData>(
-    './workers/grayscale.ts',
+    new URL('./workers/grayscale.ts', import.meta.url),
     imageData,
   );
   imageData.data.set(newImageData.data);
 }
 
 export async function add(imageData1: ImageData, imageData2: ImageData) {
-  const res = await runInWorker<AddParams, AddParams>('./workers/add.ts', {
-    imageData1,
-    imageData2,
-  });
+  const res = await runInWorker<AddParams, AddParams>(
+    new URL('./workers/add.ts', import.meta.url),
+    {
+      imageData1,
+      imageData2,
+    },
+  );
   imageData1.data.set(res.imageData1.data);
   imageData2.data.set(res.imageData2.data);
 }
 
 export async function subtract(imageData1: ImageData, imageData2: ImageData) {
   const res = await runInWorker<SubtractParams, SubtractParams>(
-    './workers/subtract.ts',
+    new URL('./workers/subtract.ts', import.meta.url),
     {
       imageData1,
       imageData2,
@@ -133,7 +135,7 @@ export function clone(imageData: ImageData): ImageData {
 
 export async function threshold(imageData: ImageData, threshold: number) {
   const newImageData = await runInWorker<TresholdParams, ImageData>(
-    './workers/treshold.ts',
+    new URL('./workers/treshold.ts', import.meta.url),
     {
       imageData,
       threshold,
@@ -147,7 +149,7 @@ export async function removeColorChannel(
   colorChannel: ColorChannel,
 ) {
   const newImageData = await runInWorker<RemoveColorChannelParams, ImageData>(
-    './workers/removeColorChannel.ts',
+    new URL('./workers/removeColorChannel.ts', import.meta.url),
     {
       imageData,
       colorChannel,
@@ -161,7 +163,7 @@ export async function enhanceColorChannel(
   colorChannel: ColorChannel,
 ) {
   const newImageData = await runInWorker<EnhanceColorChannelParams, ImageData>(
-    './workers/enhanceColorChannel.ts',
+    new URL('./workers/enhanceColorChannel.ts', import.meta.url),
     {
       imageData,
       colorChannel,
@@ -172,7 +174,7 @@ export async function enhanceColorChannel(
 
 export async function setBrightness(imageData: ImageData, brightness: number) {
   const newImageData = await runInWorker<SetBrightnessParams, ImageData>(
-    './workers/setBrightness.ts',
+    new URL('./workers/setBrightness.ts', import.meta.url),
     {
       imageData,
       brightness,
