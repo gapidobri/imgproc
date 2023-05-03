@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { Button, ButtonGroup, Spinner, Range, P } from 'flowbite-svelte';
   import {
-    applyFilter,
-    grayscale,
-    threshold as threshold,
-  } from './lib/engine/processor';
+    Button,
+    ButtonGroup,
+    Spinner,
+    Range,
+    P,
+    Input,
+  } from 'flowbite-svelte';
+  import { applyFilter, grayscale } from './lib/engine/processor';
   import {
     type FilterFn,
     sharpeningFilter,
@@ -16,12 +19,15 @@
     thresholdFilter,
     enhanceColorChannelFilter,
     setBrightnessFilter,
+    customMatrixFilter,
   } from './lib/engine/filters';
   import 'chart.js/auto';
   import ImageUpload from './lib/components/ImageUpload.svelte';
   import demoImage from './assets/image.jpeg';
   import { ColorChannel } from './lib/engine/types';
   import Preview from './lib/components/Preview.svelte';
+  import type { Selection } from './lib/components/types';
+  import Matrix from './lib/components/Matrix.svelte';
 
   let originalSrc: string | null = demoImage;
   let src: string | null = demoImage;
@@ -29,6 +35,8 @@
 
   let thresholdValue = 128;
   let brightnessValue = 1;
+
+  let selection: Selection;
 
   type Filter = {
     name: string;
@@ -39,7 +47,7 @@
 
   async function apply(name: string, filter: FilterFn) {
     processing = true;
-    src = await applyFilter(src, filter);
+    src = await applyFilter(src, filter, selection);
     filters = [...filters, { name, src }];
     processing = false;
   }
@@ -75,8 +83,9 @@
         <Button on:click={() => apply('Gaussian blur', gaussianBlurFilter)}>
           Gaussian blur
         </Button>
-        <Button on:click={() => apply('Laplace', laplaceFilter)}>Laplace</Button
-        >
+        <Button on:click={() => apply('Laplace', laplaceFilter)}>
+          Laplace
+        </Button>
         <Button on:click={() => apply('Sobel', sobelFilter)}>Sobel</Button>
         <Button on:click={() => apply('Sharpening', sharpeningFilter)}>
           Sharpening
@@ -93,95 +102,119 @@
         <Button color="red" on:click={reset}>Reset</Button>
       </div>
     </div>
-    <div class="flex items-center gap-x-4 w-96">
-      <Button
-        on:click={() =>
-          apply(`Treshold: ${thresholdValue}`, thresholdFilter(thresholdValue))}
-      >
-        Threshold
-      </Button>
-      <P class="w-16">{thresholdValue}</P>
-      <Range bind:value={thresholdValue} min={0} max={255} />
-    </div>
-    <div>
-      <ButtonGroup>
-        <Button
-          color="red"
-          on:click={() =>
-            apply('Remove Red', removeColorChannelFilter(ColorChannel.red))}
-        >
-          Remove Red
-        </Button>
-        <Button
-          color="green"
-          on:click={() =>
-            apply('Remove Green', removeColorChannelFilter(ColorChannel.green))}
-        >
-          Remove Green
-        </Button>
-        <Button
-          color="blue"
-          on:click={() =>
-            apply('Remove Blue', removeColorChannelFilter(ColorChannel.blue))}
-        >
-          Remove Blue
-        </Button>
-      </ButtonGroup>
-    </div>
-    <div>
-      <ButtonGroup>
-        <Button
-          color="red"
-          on:click={() =>
-            apply('Enhance Red', enhanceColorChannelFilter(ColorChannel.red))}
-        >
-          Enhance Red
-        </Button>
-        <Button
-          color="green"
-          on:click={() =>
-            apply(
-              'Enhance Green',
-              enhanceColorChannelFilter(ColorChannel.green),
-            )}
-        >
-          Enhance Green
-        </Button>
-        <Button
-          color="blue"
-          on:click={() =>
-            apply('Enhance Blue', enhanceColorChannelFilter(ColorChannel.blue))}
-        >
-          Enhance Blue
-        </Button>
-      </ButtonGroup>
-    </div>
-    <div class="flex items-center gap-x-4 w-96">
-      <Button
-        on:click={() =>
-          apply(
-            `Brightness: ${brightnessValue}`,
-            setBrightnessFilter(brightnessValue),
-          )}
-      >
-        Brightness
-      </Button>
-      <P class="w-16">{brightnessValue}</P>
-      <Range bind:value={brightnessValue} min={0} max={5} step={0.1} />
+    <div class="flex space-x-4">
+      <div class="space-y-2">
+        <div class="flex items-center gap-x-4 w-96">
+          <Button
+            on:click={() =>
+              apply(
+                `Threshold: ${thresholdValue}`,
+                thresholdFilter(thresholdValue),
+              )}
+          >
+            Threshold
+          </Button>
+          <P class="w-16">{thresholdValue}</P>
+          <Range bind:value={thresholdValue} min={0} max={255} />
+        </div>
+        <div>
+          <ButtonGroup>
+            <Button
+              color="red"
+              on:click={() =>
+                apply('Remove Red', removeColorChannelFilter(ColorChannel.red))}
+            >
+              Remove Red
+            </Button>
+            <Button
+              color="green"
+              on:click={() =>
+                apply(
+                  'Remove Green',
+                  removeColorChannelFilter(ColorChannel.green),
+                )}
+            >
+              Remove Green
+            </Button>
+            <Button
+              color="blue"
+              on:click={() =>
+                apply(
+                  'Remove Blue',
+                  removeColorChannelFilter(ColorChannel.blue),
+                )}
+            >
+              Remove Blue
+            </Button>
+          </ButtonGroup>
+        </div>
+        <div>
+          <ButtonGroup>
+            <Button
+              color="red"
+              on:click={() =>
+                apply(
+                  'Enhance Red',
+                  enhanceColorChannelFilter(ColorChannel.red),
+                )}
+            >
+              Enhance Red
+            </Button>
+            <Button
+              color="green"
+              on:click={() =>
+                apply(
+                  'Enhance Green',
+                  enhanceColorChannelFilter(ColorChannel.green),
+                )}
+            >
+              Enhance Green
+            </Button>
+            <Button
+              color="blue"
+              on:click={() =>
+                apply(
+                  'Enhance Blue',
+                  enhanceColorChannelFilter(ColorChannel.blue),
+                )}
+            >
+              Enhance Blue
+            </Button>
+          </ButtonGroup>
+        </div>
+        <div class="flex items-center gap-x-4 w-96">
+          <Button
+            on:click={() =>
+              apply(
+                `Brightness: ${brightnessValue}`,
+                setBrightnessFilter(brightnessValue),
+              )}
+          >
+            Brightness
+          </Button>
+          <P class="w-16">{brightnessValue}</P>
+          <Range bind:value={brightnessValue} min={0} max={5} step={0.1} />
+        </div>
+      </div>
+      <div>
+        <Matrix
+          on:apply={(e) => apply('Custom matrix', customMatrixFilter(e.detail))}
+        />
+      </div>
     </div>
   {/if}
 
   <div class="grow flex">
-    <div class="w-64" />
+    <div class="w-32" />
     <div class="grow flex justify-center items-center">
-      <Preview {src} />
+      <Preview {src} bind:selection />
       {#if processing}
         <div class="absolute">
           <Spinner />
         </div>
       {/if}
     </div>
-    <div class="w-64">
+    <div class="w-32">
       {#each filters as filter}
         <P>{filter.name}</P>
       {/each}

@@ -1,3 +1,4 @@
+import type { Selection } from '../components/types';
 import type { FilterFn } from './filters';
 import type { ColorChannel } from './types';
 import type { AddParams } from './workers/add';
@@ -17,6 +18,7 @@ export type Filter = {
 export async function applyFilter(
   src: string,
   filter: FilterFn,
+  selection: Selection,
 ): Promise<string> {
   const image = await loadImage(src);
 
@@ -27,11 +29,25 @@ export async function applyFilter(
   const ctx = canvas.getContext('2d');
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let imageData: ImageData;
+  if (selection.selected) {
+    imageData = ctx.getImageData(
+      selection.x,
+      selection.y,
+      selection.width,
+      selection.height,
+    );
+  } else {
+    imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  }
 
   await filter(imageData);
 
-  ctx.putImageData(imageData, 0, 0);
+  if (selection.selected) {
+    ctx.putImageData(imageData, selection.x, selection.y);
+  } else {
+    ctx.putImageData(imageData, 0, 0);
+  }
 
   const url = canvas.toDataURL();
   canvas.remove();

@@ -99,3 +99,8 @@ export const setBrightnessFilter =
   (brightness: number): FilterFn =>
   (imageData: ImageData) =>
     setBrightness(imageData, brightness);
+
+export const customMatrixFilter =
+  (matrix: number[][]): FilterFn =>
+  (imageData: ImageData) =>
+    applyMatrix(imageData, { matrix });
