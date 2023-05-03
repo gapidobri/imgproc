@@ -1,40 +1,41 @@
 <script lang="ts">
-  import { Line } from 'svelte-chartjs';
+  import { Bar } from 'svelte-chartjs';
+  import { getHistogram } from '../engine/processor';
+  import type { HistogramData } from '../engine/workers/getHistogram';
 
-  type HistogramData = {
-    red: number[];
-    green: number[];
-    blue: number[];
-  };
+  export let src: string;
 
-  export let histogram: HistogramData;
+  let histogram: HistogramData;
+
+  $: if (src) {
+    getHistogram(src).then((h) => {
+      histogram = h;
+    });
+  }
 </script>
 
-<Line
-  data={{
-    labels: new Array(256).fill(0).map((_, i) => i),
-    datasets: [
-      {
-        fill: true,
-        label: 'Red',
-        borderColor: 'red',
-        backgroundColor: 'rgba(255, 0, 0, 0.2)',
-        data: histogram.red,
-      },
-      {
-        fill: true,
-        label: 'Green',
-        borderColor: 'green',
-        backgroundColor: 'rgba(0, 255, 0, 0.2)',
-        data: histogram.green,
-      },
-      {
-        fill: true,
-        label: 'Blue',
-        borderColor: 'blue',
-        backgroundColor: 'rgba(0, 0, 255, 0.2)',
-        data: histogram.blue,
-      },
-    ],
-  }}
-/>
+{#if histogram}
+  <Bar
+    data={{
+      labels: histogram.labels,
+
+      datasets: [
+        {
+          label: 'Red',
+          backgroundColor: 'red',
+          data: histogram.data.red,
+        },
+        {
+          label: 'Green',
+          backgroundColor: 'lime',
+          data: histogram.data.red,
+        },
+        {
+          label: 'Blue',
+          backgroundColor: 'blue',
+          data: histogram.data.red,
+        },
+      ],
+    }}
+  />
+{/if}

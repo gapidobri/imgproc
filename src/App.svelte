@@ -28,6 +28,7 @@
   import Preview from './lib/components/Preview.svelte';
   import type { Selection } from './lib/components/types';
   import Matrix from './lib/components/Matrix.svelte';
+  import Histogram from './lib/components/Histogram.svelte';
 
   let originalSrc: string | null = demoImage;
   let src: string | null = demoImage;
@@ -219,5 +220,11 @@
         <P>{filter.name}</P>
       {/each}
     </div>
+  </div>
+</div>
+
+<div class="flex justify-center mb-16">
+  <div class="w-2/3">
+    <Histogram {src} />
   </div>
 </div>
